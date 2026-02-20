@@ -1,0 +1,31 @@
+Vagrant.configure("2") do |config|
+	config.vm.box = "generic/alpine318"
+	config.vm.box_version = "4.3.12"
+
+	config.vm.provider "virtualbox" do |vb|
+		vb.memory = "512"
+		vb.cpus = 1
+	end
+
+	config.vm.define "cauvrayS" do |control|
+		control.vm.hostname = "cauvrayS"
+		control.vm.network "private_network", ip: "192.168.56.110"
+
+		config.vm.provision "shell", name: "install-dependencies", path: "scripts/s_install-dependencies.sh"
+
+		control.vm.provider "virtualbox" do |v|
+			v.customize ["modifyvm", :id, "--name", "cauvrayS"]
+		end
+	end
+
+	config.vm.define "cauvraySW" do |control|
+		control.vm.hostname = "cauvraySW"
+		control.vm.network "private_network", ip: "192.168.56.111"
+
+		config.vm.provision "shell", name: "install-dependencies", path: "scripts/sw_install-dependencies.sh"
+
+		control.vm.provider "virtualbox" do |v|
+			v.customize ["modifyvm", :id, "--name", "cauvraySW"]
+		end
+	end
+end
