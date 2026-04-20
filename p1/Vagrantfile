@@ -2,42 +2,40 @@ Vagrant.configure("2") do |config|
 	config.vm.box = "generic/alpine318"
 	config.vm.box_version = "4.3.12"
 
-	config.vm.provider "virtualbox" do |vb|
-		vb.memory = "512"
-		vb.cpus = 1
-	end
-
-	config.vm.provider "vmware_desktop" do |vw|
-		vw.memory = "512"
-		vw.cpus = 1
-	end
-
-	config.vm.define "lomontS" do |control|
-		control.vm.hostname = "lomontS"
-		control.vm.network "private_network", ip: "192.168.56.110"
+	config.vm.define "lomontS" do |server|
+		server.vm.hostname = "lomontS"
+		server.vm.network "private_network", ip: "192.168.56.110"
 
 		config.vm.provision "shell", name: "install-dependencies", path: "scripts/s_install-dependencies.sh"
 
-		control.vm.provider "virtualbox" do |v|
+		server.vm.provider "virtualbox" do |v|
+			v.memory = 2048
+			v.cpus = 2
 			v.customize ["modifyvm", :id, "--name", "lomontS"]
 		end
 
-		control.vm.provider "vmware_desktop" do |v|
+		server.vm.provider "vmware_desktop" do |v|
+			v.memory = 2048
+			v.cpus = 2
 			v.vmx["displayname"] = "lomontS"
 		end
 	end
 
-	config.vm.define "lomontSW" do |control|
-		control.vm.hostname = "lomontSW"
-		control.vm.network "private_network", ip: "192.168.56.111"
+	config.vm.define "lomontSW" do |worker|
+		worker.vm.hostname = "lomontSW"
+		worker.vm.network "private_network", ip: "192.168.56.111"
 
 		config.vm.provision "shell", name: "install-dependencies", path: "scripts/sw_install-dependencies.sh"
 
-		control.vm.provider "virtualbox" do |v|
+		worker.vm.provider "virtualbox" do |v|
+			v.memory = 512
+			v.cpus = 1
 			v.customize ["modifyvm", :id, "--name", "lomontSW"]
 		end
 
-		control.vm.provider "vmware_desktop" do |v|
+		worker.vm.provider "vmware_desktop" do |v|
+			v.memory = 512
+			v.cpus = 1
 			v.vmx["displayname"] = "lomontSW"
 		end
 	end
