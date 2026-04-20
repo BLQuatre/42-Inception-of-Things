@@ -7,6 +7,11 @@ Vagrant.configure("2") do |config|
 		vb.cpus = 1
 	end
 
+	config.vm.provider "vmware_desktop" do |vw|
+		vw.memory = "512"
+		vw.cpus = 1
+	end
+
 	config.vm.define "cauvrayS" do |control|
 		control.vm.hostname = "cauvrayS"
 		control.vm.network "private_network", ip: "192.168.56.110"
@@ -15,6 +20,10 @@ Vagrant.configure("2") do |config|
 
 		control.vm.provider "virtualbox" do |v|
 			v.customize ["modifyvm", :id, "--name", "cauvrayS"]
+		end
+
+		control.vm.provider "vmware_desktop" do |v|
+			v.vmx["displayname"] = "cauvrayS"
 		end
 	end
 
@@ -26,6 +35,10 @@ Vagrant.configure("2") do |config|
 
 		control.vm.provider "virtualbox" do |v|
 			v.customize ["modifyvm", :id, "--name", "cauvraySW"]
+		end
+
+		control.vm.provider "vmware_desktop" do |v|
+			v.vmx["displayname"] = "cauvraySW"
 		end
 	end
 end
