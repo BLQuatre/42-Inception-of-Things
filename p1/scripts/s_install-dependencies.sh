@@ -1,13 +1,8 @@
 #!/bin/sh
 
-# OpenRC is require for K3s
-apk add openrc
+export K3S_KUBECONFIG_MODE="644"
+export K3S_TOKEN="vagrant-k3s-secret-token-12345"
+export INSTALL_K3S_EXEC="server --node-ip=192.168.56.110 --flannel-iface=eth1"
 
 # Install K3s in server (controller) mode
-wget -qO- https://get.k3s.io | INSTALL_K3S_EXEC="server" sh -s -
-
-# Install Kubectl
-wget -q https://dl.k8s.io/release/v1.35.0/bin/linux/amd64/kubectl
-chmod +x ./kubectl
-mv ./kubectl /usr/local/bin/kubectl
-kubectl version --client
+wget -qO- https://get.k3s.io | sh -s -
