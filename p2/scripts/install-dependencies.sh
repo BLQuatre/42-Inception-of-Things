@@ -1,5 +1,10 @@
 #!/bin/sh
 
+#install curl
+apk add curl
+
+
+
 #install k3s
 curl -sfL https://get.k3s.io | sh -
 

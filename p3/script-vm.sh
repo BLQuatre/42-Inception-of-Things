@@ -31,6 +31,12 @@ curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
 
+#download argocd CLI
+
+curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
+rm argocd-linux-amd64
+
 kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 kubectl config set-context --current --namespace=argocd
@@ -41,4 +47,11 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443
 
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 
-#mdp: 9IIEPxUlfFdF499R
+#docker image installation in dev pod
+docker pull wil42/playground:v2
+#port 8888
+
+#mdp: L9nqCGGrP4hDHyCN
+
+#sudo mount -t 9p -o trans=virtio share /tmp/host_files
+#https://argo-cd.readthedocs.io/en/stable/getting_started/
