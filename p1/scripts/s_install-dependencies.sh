@@ -14,3 +14,10 @@ while [ ! -f $TOKEN_FILE ]; do
 done
 
 cat $TOKEN_FILE > /vagrant/node-token
+
+while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
+	echo "Waiting for k3s kubeconfig..."
+	sleep 2
+done
+
+sed 's/127.0.0.1/192.168.56.110/g' /etc/rancher/k3s/k3s.yaml > /vagrant/k3s.yaml
