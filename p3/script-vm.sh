@@ -27,7 +27,7 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
-sudo k3d cluster create mycluster
+sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer"
 
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
@@ -43,12 +43,12 @@ kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}
 
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-sudo kubectl config set-context --current --namespace=argocd
+sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 
 sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 & > /dev/null 1>&2
 sudo kubectl port-forward svc/argocd-server -n argocd 8888:8888 & > /dev/null 1>&2
 
-sudo argocd admin initial-password -n argocd
+sudo kubectl config set-context --current --namespace=argocd
 
 ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
 
