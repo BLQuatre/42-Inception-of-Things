@@ -38,17 +38,12 @@ sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.gith
 ok "ArgoCD manifests applied."
 
 info "Applying namespaces..."
-sudo kubectl apply -f namespace_argo.yaml
-sudo kubectl apply -f namespace_dev.yaml
+sudo kubectl apply -f namespaces.yml
 ok "Namespaces applied."
 
-info "Waiting for argocd-server deployment to become available (timeout: 300s)..."
-sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
-ok "argocd-server is available."
-
-info "Waiting for argocd-repo-server deployment to become available (timeout: 300s)..."
-sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n argocd
-ok "argocd-repo-server is available."
+info "Waiting for all ArgoCD pods to be ready (timeout: 300s)..."
+sudo kubectl wait --for=condition=Ready --timeout=300s pod --all -n argocd
+ok "ArgoCD is fully up and running."
 
 info "Configuring ArgoCD insecure mode and NodePort 30080..."
 sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true"}}'
