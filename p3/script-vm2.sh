@@ -18,11 +18,13 @@ ok "Prerequisites installed."
 info "Installing Docker..."
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
+sudo rm get-docker.sh
 ok "Docker installed."
 
 info "Downloading kubectl..."
 sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+sudo rm kubectl
 ok "kubectl installed."
 
 info "Installing k3d..."
@@ -30,16 +32,16 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'lomontS'..."
-sudo k3d cluster create lomontS -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8080:30080@server:0"
+sudo k3d cluster create lomontS -p "8888:8888@loadbalancer" -p "443:443@loadbalancer" -p "8080:30080@server:0"
 ok "k3d cluster created."
-
-info "Installing ArgoCD manifests..."
-sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-ok "ArgoCD manifests applied."
 
 info "Applying namespaces..."
 sudo kubectl apply -f namespaces.yml
 ok "Namespaces applied."
+
+info "Installing ArgoCD manifests..."
+sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+ok "ArgoCD manifests applied."
 
 info "Waiting for all ArgoCD pods to be ready (timeout: 300s)..."
 sudo kubectl wait --for=condition=Ready --timeout=300s pod --all -n argocd
