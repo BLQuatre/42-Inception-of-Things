@@ -3,14 +3,15 @@
 sudo apt update
 sudo apt install ca-certificates curl -y
 sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+. /etc/os-release
+sudo curl -fsSL "https://download.docker.com/linux/${ID}/gpg" -o /etc/apt/keyrings/docker.asc
 sudo chmod a+r /etc/apt/keyrings/docker.asc
 
 # Add the repository to Apt sources:
 sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
 Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+URIs: https://download.docker.com/linux/${ID}
+Suites: ${UBUNTU_CODENAME:-$VERSION_CODENAME}
 Components: stable
 Architectures: $(dpkg --print-architecture)
 Signed-By: /etc/apt/keyrings/docker.asc
@@ -46,7 +47,9 @@ sudo kubectl config set-context --current --namespace=argocd
 
 sudo argocd admin initial-password -n argocd
 
-argocd login localhost:80
+ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
+
+argocd login localhost:80 --username admin --password ${ARGOCD_PASSWORD} --insecure
 
 argocd app create webapp --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
 
