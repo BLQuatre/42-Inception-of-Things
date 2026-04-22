@@ -52,20 +52,13 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'mycluster'..."
-sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8080:8080@loadbalancer"
+sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "8080:30080@server:0"
 ok "k3d cluster created."
 
-info "Configuring Traefik entrypoint for ArgoCD on port 8080..."
-sudo kubectl apply -f traefik-config.yaml
-sudo kubectl rollout restart deployment/traefik -n kube-system
-sudo kubectl wait --for=condition=available --timeout=120s deployment/traefik -n kube-system
-ok "Traefik entrypoint configured."
-
-info "Applying namespaces and ingress..."
+info "Applying namespaces..."
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
-sudo kubectl apply -f ingress.yaml
-ok "Namespaces and ingress applied."
+ok "Namespaces applied."
 
 info "Installing ArgoCD manifests..."
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -79,11 +72,12 @@ info "Waiting for argocd-repo-server deployment to become available (timeout: 30
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n argocd
 ok "argocd-repo-server is available."
 
-info "Configuring ArgoCD to run in insecure (HTTP) mode..."
+info "Configuring ArgoCD insecure mode and NodePort 30080..."
 sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true"}}'
+sudo kubectl patch svc argocd-server -n argocd --type='json' -p='[{"op":"replace","path":"/spec/type","value":"NodePort"},{"op":"add","path":"/spec/ports/0/nodePort","value":30080}]'
 sudo kubectl rollout restart deployment/argocd-server -n argocd
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
-ok "ArgoCD insecure mode configured."
+ok "ArgoCD configured."
 
 info "Setting kubectl context namespace to argocd..."
 sudo kubectl config set-context --current --namespace=argocd
