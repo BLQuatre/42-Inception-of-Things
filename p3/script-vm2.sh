@@ -91,24 +91,16 @@ info "Retrieving ArgoCD initial admin password..."
 ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
 ok "Password retrieved."
 
-info "Starting port-forward to argocd-server..."
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
-PF_PID=$!
-sleep 3
-ok "Port-forward started (PID: ${PF_PID})."
-
 info "Logging in to ArgoCD..."
-argocd login localhost:8080 --username admin --password ${ARGOCD_PASSWORD} --insecure
+argocd login localhost:80 --username admin --password ${ARGOCD_PASSWORD} --grpc-web --insecure
 ok "Logged in to ArgoCD."
 
 info "Creating ArgoCD app 'webapp'..."
-argocd app create webapp --server localhost:8080 --insecure --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
+argocd app create webapp --grpc-web --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
 ok "ArgoCD app 'webapp' created."
 
 info "Syncing ArgoCD app 'webapp'..."
-argocd app sync webapp --server localhost:8080 --insecure
+argocd app sync webapp --grpc-web
 ok "ArgoCD app 'webapp' synced."
-
-kill ${PF_PID} 2>/dev/null
 
 
