@@ -67,10 +67,6 @@ sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 sudo rm argocd-linux-amd64
 ok "ArgoCD CLI installed."
 
-info "Patching argocd-server service to ClusterIP..."
-sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
-ok "argocd-server service patched."
-
 info "Installing ArgoCD manifests..."
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ok "ArgoCD manifests applied."
@@ -78,6 +74,10 @@ ok "ArgoCD manifests applied."
 info "Waiting for argocd-server deployment to become available (timeout: 300s)..."
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 ok "argocd-server is available."
+
+info "Patching argocd-server service to ClusterIP..."
+sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
+ok "argocd-server service patched."
 
 info "Setting kubectl context namespace to argocd..."
 sudo kubectl config set-context --current --namespace=argocd
@@ -87,16 +87,24 @@ info "Retrieving ArgoCD initial admin password..."
 ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
 ok "Password retrieved."
 
+info "Starting port-forward to argocd-server..."
+sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+PF_PID=$!
+sleep 3
+ok "Port-forward started (PID: ${PF_PID})."
+
 info "Logging in to ArgoCD..."
-argocd login localhost:80 --username admin --password ${ARGOCD_PASSWORD} --insecure
+argocd login localhost:8080 --username admin --password ${ARGOCD_PASSWORD} --insecure
 ok "Logged in to ArgoCD."
 
 info "Creating ArgoCD app 'webapp'..."
-argocd app create webapp --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
+argocd app create webapp --server localhost:8080 --insecure --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
 ok "ArgoCD app 'webapp' created."
 
 info "Syncing ArgoCD app 'webapp'..."
-argocd app sync webapp
+argocd app sync webapp --server localhost:8080 --insecure
 ok "ArgoCD app 'webapp' synced."
+
+kill ${PF_PID} 2>/dev/null
 
 
