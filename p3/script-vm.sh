@@ -46,7 +46,7 @@ sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.gith
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 
 sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 & > /dev/null 1>&2
-sudo kubectl port-forward svc/argocd-server -n argocd 8888:8888 & > /dev/null 1>&2
+sudo kubectl port-forward svc/wil-app-service -n dev 8888:8888 & > /dev/null 1>&2
 
 sudo kubectl config set-context --current --namespace=argocd
 
