@@ -1,5 +1,5 @@
-source .env
-echo "$UBUNTU_PASSWORD" | sudo -S -i
+#source .env
+#echo "$UBUNTU_PASSWORD" | sudo -S -i
 # install docker
 # Add Docker's official GPG key:
 sudo apt update
@@ -30,6 +30,7 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
+sudo kubectl apply -f ingress.yaml
 
 #download argocd CLI
 
@@ -43,21 +44,10 @@ sudo kubectl config set-context --current --namespace=argocd
 
 sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
-sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+sudo argocd admin initial-password -n argocd
 
-sudo argocd admin initial-password -n argocd > password.txt
-
-argocd login 
+argocd login <ip interne cluster + port>
 
 argocd app create webapp --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
 
 argocd app sync webapp
-
-#docker image installation in dev pod
-#docker pull wil42/playground:v2
-#port 8888
-
-#mdp: L9nqCGGrP4hDHyCN
-
-#sudo mount -t 9p -o trans=virtio share /tmp/host_files
-#https://argo-cd.readthedocs.io/en/stable/getting_started/
