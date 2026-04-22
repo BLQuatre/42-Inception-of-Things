@@ -39,11 +39,14 @@ sudo curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/release
 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
 sudo rm argocd-linux-amd64
 
-sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
+kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 sudo kubectl config set-context --current --namespace=argocd
+
+sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 & > /dev/null 1>&2
+sudo kubectl port-forward svc/argocd-server -n argocd 8888:8888 & > /dev/null 1>&2
 
 sudo argocd admin initial-password -n argocd
 
