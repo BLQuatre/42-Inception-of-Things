@@ -1,4 +1,6 @@
-#install docker
+source .env
+echo "$UBUNTU_PASSWORD" | sudo -S -i
+# install docker
 # Add Docker's official GPG key:
 sudo apt update
 sudo apt install ca-certificates curl -y
@@ -20,35 +22,39 @@ sudo apt update
 
 sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
-sudo docker run hello-world
-
-sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/arm64/kubectl"
+sudo curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
-curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
 
 #download argocd CLI
 
-curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+sudo curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
 sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
-rm argocd-linux-amd64
+sudo rm argocd-linux-amd64
 
-kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-kubectl config set-context --current --namespace=argocd
+sudo kubectl config set-context --current --namespace=argocd
 
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
+sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}'
 
-kubectl port-forward svc/argocd-server -n argocd 8080:443
+sudo kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
+sudo argocd admin initial-password -n argocd > password.txt
+
+argocd login 
+
+argocd app create webapp --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
+
+argocd app sync webapp
 
 #docker image installation in dev pod
-docker pull wil42/playground:v2
+#docker pull wil42/playground:v2
 #port 8888
 
 #mdp: L9nqCGGrP4hDHyCN
