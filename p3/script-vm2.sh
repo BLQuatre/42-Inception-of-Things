@@ -61,12 +61,6 @@ sudo kubectl apply -f namespace_dev.yaml
 sudo kubectl apply -f ingress.yaml
 ok "Namespaces and ingress applied."
 
-info "Downloading ArgoCD CLI..."
-sudo curl -sSL -o argocd-linux-amd64 https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-sudo install -m 555 argocd-linux-amd64 /usr/local/bin/argocd
-sudo rm argocd-linux-amd64
-ok "ArgoCD CLI installed."
-
 info "Installing ArgoCD manifests..."
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ok "ArgoCD manifests applied."
@@ -79,28 +73,24 @@ info "Waiting for argocd-repo-server deployment to become available (timeout: 30
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n argocd
 ok "argocd-repo-server is available."
 
-info "Patching argocd-server service to ClusterIP..."
-sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
-ok "argocd-server service patched."
+info "Configuring ArgoCD to run in insecure (HTTP) mode..."
+sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true"}}'
+sudo kubectl rollout restart deployment/argocd-server -n argocd
+sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
+ok "ArgoCD insecure mode configured."
 
 info "Setting kubectl context namespace to argocd..."
 sudo kubectl config set-context --current --namespace=argocd
 ok "Context namespace set."
 
-info "Retrieving ArgoCD initial admin password..."
-ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
-ok "Password retrieved."
-
-info "Logging in to ArgoCD..."
-argocd login localhost:80 --username admin --password ${ARGOCD_PASSWORD} --grpc-web --insecure
-ok "Logged in to ArgoCD."
-
 info "Creating ArgoCD app 'webapp'..."
-argocd app create webapp --grpc-web --repo https://github.com/MiniKlar/IoT-project.git --path . --dest-server https://kubernetes.default.svc --dest-namespace dev
+sudo kubectl apply -f app.yaml
 ok "ArgoCD app 'webapp' created."
 
-info "Syncing ArgoCD app 'webapp'..."
-argocd app sync webapp --grpc-web
-ok "ArgoCD app 'webapp' synced."
+ARGOCD_PASSWORD=$(sudo kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)
+echo ""
+echo "ArgoCD UI: http://localhost:80"
+echo "Username:  admin"
+echo "Password:  ${ARGOCD_PASSWORD}"
 
 
