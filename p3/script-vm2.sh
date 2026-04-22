@@ -52,7 +52,7 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'mycluster'..."
-sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "8080:30080@server:0"
+sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8080:30080@server:0"
 ok "k3d cluster created."
 
 info "Applying namespaces..."
