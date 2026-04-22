@@ -43,9 +43,9 @@ sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"
 
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-sudo kubectl config set-context --current --namespace=argocd
+sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 
-sudo argocd admin initial-password -n argocd
+sudo kubectl config set-context --current --namespace=argocd
 
 ARGOCD_PASSWORD=$(sudo argocd admin initial-password -n argocd | head -1)
 
