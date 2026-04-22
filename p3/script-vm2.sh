@@ -75,6 +75,10 @@ info "Waiting for argocd-server deployment to become available (timeout: 300s)..
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 ok "argocd-server is available."
 
+info "Waiting for argocd-repo-server deployment to become available (timeout: 300s)..."
+sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-repo-server -n argocd
+ok "argocd-repo-server is available."
+
 info "Patching argocd-server service to ClusterIP..."
 sudo kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "ClusterIP"}}'
 ok "argocd-server service patched."
