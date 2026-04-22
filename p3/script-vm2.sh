@@ -52,8 +52,14 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'mycluster'..."
-sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer"
+sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer" -p "8080:8080@loadbalancer"
 ok "k3d cluster created."
+
+info "Configuring Traefik entrypoint for ArgoCD on port 8080..."
+sudo kubectl apply -f traefik-config.yaml
+sudo kubectl rollout restart deployment/traefik -n kube-system
+sudo kubectl wait --for=condition=available --timeout=120s deployment/traefik -n kube-system
+ok "Traefik entrypoint configured."
 
 info "Applying namespaces and ingress..."
 sudo kubectl apply -f namespace_argo.yaml
@@ -89,7 +95,7 @@ ok "ArgoCD app 'webapp' created."
 
 ARGOCD_PASSWORD=$(sudo kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)
 echo ""
-echo "ArgoCD UI: http://localhost:80"
+echo "ArgoCD UI: http://localhost:8080"
 echo "Username:  admin"
 echo "Password:  ${ARGOCD_PASSWORD}"
 

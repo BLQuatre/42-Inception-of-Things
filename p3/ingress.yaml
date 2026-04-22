@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   name: argocd-server-ingress
   namespace: argocd
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: argocd
 spec:
   rules:
   - http:
