@@ -27,7 +27,7 @@ sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 
 sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 
-sudo k3d cluster create mycluster
+sudo k3d cluster create mycluster -p "80:80@loadbalancer" -p "443:443@loadbalancer"
 
 sudo kubectl apply -f namespace_argo.yaml
 sudo kubectl apply -f namespace_dev.yaml
