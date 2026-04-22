@@ -92,5 +92,3 @@ echo ""
 echo "ArgoCD UI: http://localhost:8080"
 echo "Username:  admin"
 echo "Password:  ${ARGOCD_PASSWORD}"
-
-
