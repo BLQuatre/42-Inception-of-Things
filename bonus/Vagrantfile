@@ -1,0 +1,21 @@
+Vagrant.configure("2") do |config|
+	config.vm.box = "ubuntu/jammy64"
+
+	config.vm.define "lomontS" do |server|
+		server.vm.hostname = "lomontS"
+		server.vm.network "private_network", ip: "192.168.56.110"
+		server.vm.network "forwarded_port", guest: 80, host: 80
+		server.vm.network "forwarded_port", guest: 443, host: 443
+		server.vm.network "forwarded_port", guest: 8929, host: 8929
+
+		server.vm.synced_folder "./", "/vagrant"
+
+		server.vm.provision "shell", inline: "cd /vagrant && bash script-vm.sh"
+
+		server.vm.provider "virtualbox" do |v|
+			v.memory = 8192
+			v.cpus = 2
+			v.customize ["modifyvm", :id, "--name", "lomontS"]
+		end
+	end
+end
