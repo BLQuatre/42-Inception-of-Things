@@ -63,6 +63,6 @@ ok "ArgoCD app 'webapp' created."
 
 ARGOCD_PASSWORD=$(sudo kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)
 echo ""
-echo "ArgoCD UI: http://localhost:8080"
+echo "ArgoCD UI: http://localhost"
 echo "Username:  admin"
 echo "Password:  ${ARGOCD_PASSWORD}"
