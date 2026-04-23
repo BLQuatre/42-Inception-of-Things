@@ -40,9 +40,9 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: webapp
+            name: kyaubry-app-service
             port:
-              number: 80
+              number: 8888
 
 ---
 
