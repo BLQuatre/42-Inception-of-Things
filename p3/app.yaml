@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/KylianAUBRY/red-tetris-kyaubry
     targetRevision: HEAD
-    path: .
+    path: .github/deployment
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
