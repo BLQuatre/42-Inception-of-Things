@@ -62,27 +62,50 @@ sudo kubectl apply -f ingress.yml
 ok "Ingress applied."
 
 response="000"
+GITLAB_BOOT_TIMEOUT=3600
+GITLAB_PASSWORD_TIMEOUT=900
 
-info "Waiting for GitLab deployment to be available (timeout: 900s)..."
-sudo kubectl wait --for=condition=available --timeout=900s deployment/gitlab -n gitlab
-ok "GitLab deployment is available."
+info "Waiting for GitLab endpoint to respond (timeout: ${GITLAB_BOOT_TIMEOUT}s)..."
+elapsed=0
+while [[ "$elapsed" -lt "$GITLAB_BOOT_TIMEOUT" ]]; do
+	response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/gitlab/ || echo "000")
+	if [[ "$response" == "200" || "$response" == "301" || "$response" == "302" ]]; then
+		break
+	fi
+	sleep 5
+	elapsed=$((elapsed + 5))
+	if (( elapsed % 60 == 0 )); then
+		info "GitLab not ready yet (${elapsed}s elapsed, last HTTP code: ${response})..."
+	fi
+done
 
-info "Waiting for initial GitLab root password..."
+if [[ "$response" != "200" && "$response" != "301" && "$response" != "302" ]]; then
+	err "GitLab did not become reachable before timeout (${GITLAB_BOOT_TIMEOUT}s)."
+	exit 1
+fi
+ok "GitLab endpoint is responding (HTTP ${response})."
+
+info "Waiting for initial GitLab root password (timeout: ${GITLAB_PASSWORD_TIMEOUT}s)..."
 password=""
-while [[ -z "$password" ]]; do
+elapsed=0
+while [[ -z "$password" && "$elapsed" -lt "$GITLAB_PASSWORD_TIMEOUT" ]]; do
 	pod=$(sudo kubectl get pods -n gitlab -l app=gitlab -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
 	if [[ -n "$pod" ]]; then
 		password=$(sudo kubectl exec -n gitlab "$pod" -- awk '/Password:/ {print $2}' /etc/gitlab/initial_root_password 2>/dev/null || true)
 	fi
-	[[ -z "$password" ]] && sleep 2
+	if [[ -z "$password" ]]; then
+		sleep 2
+		elapsed=$((elapsed + 2))
+	fi
 done
+
+if [[ -z "$password" ]]; then
+	err "Timed out waiting for GitLab root password file."
+	exit 1
+fi
+
 echo "$password" > .gitlab_password
 ok "GitLab root password captured."
-
-while [[ "$response" != "302" && "$response" != "200" ]]; do
-	response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/gitlab/ || echo "000")
-	[[ "$response" != "302" && "$response" != "200" ]] && sleep 1
-done
 
 REPO_NAME="IoT-project-lomont"
 GITHUB_USERNAME="MiniKlar"

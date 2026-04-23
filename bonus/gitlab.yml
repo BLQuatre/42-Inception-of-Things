@@ -47,25 +47,22 @@ spec:
         - name: gitlab-config
           mountPath: /etc/gitlab
         startupProbe:
-          httpGet:
-            path: /-/health
+          tcpSocket:
             port: 80
-          failureThreshold: 30
-          periodSeconds: 20
-        readinessProbe:
-          httpGet:
-            path: /-/health
-            port: 80
-          initialDelaySeconds: 30
+          failureThreshold: 180
           periodSeconds: 10
-          failureThreshold: 3
-        livenessProbe:
-          httpGet:
-            path: /-/health
+        readinessProbe:
+          tcpSocket:
             port: 80
           initialDelaySeconds: 60
+          periodSeconds: 10
+          failureThreshold: 6
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 240
           periodSeconds: 30
-          failureThreshold: 5
+          failureThreshold: 6
         resources:
           requests:
             memory: "2Gi"
