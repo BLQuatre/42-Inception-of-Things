@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/MiniKlar/IoT-project-lomont.git
+    repoURL: http://gitlab-service.gitlab.svc.cluster.local/gitlab/root/IoT-project-lomont.git
     targetRevision: HEAD
     path: .
   destination:

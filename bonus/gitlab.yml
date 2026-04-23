@@ -1,20 +1,3 @@
-apiVersion: helm.cattle.io/v1
-kind: HelmChartConfig
-metadata:
-  name: traefik
-  namespace: kube-system
-spec:
-  valuesContent: |-
-    ports:
-      gitlab:
-        port: 8929
-        expose:
-          default: true
-        exposedPort: 8929
-        protocol: TCP
-
----
-
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -25,7 +8,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: 10Gi
 
 ---
 
@@ -48,12 +31,13 @@ spec:
       - name: gitlab
         image: gitlab/gitlab-ce:latest
         ports:
-        - containerPort: 8929
+        - containerPort: 80
         - containerPort: 22
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
-            external_url 'http://localhost:8929'
+            external_url 'http://localhost/gitlab'
+            gitlab_rails['gitlab_relative_url_root'] = "/gitlab"
             gitlab_rails['gitlab_shell_ssh_port'] = 22
         volumeMounts:
         - name: gitlab-data
@@ -65,20 +49,20 @@ spec:
         startupProbe:
           httpGet:
             path: /-/health
-            port: 8929
+            port: 80
           failureThreshold: 30
           periodSeconds: 20
         readinessProbe:
           httpGet:
             path: /-/health
-            port: 8929
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 10
           failureThreshold: 3
         livenessProbe:
           httpGet:
             path: /-/health
-            port: 8929
+            port: 80
           initialDelaySeconds: 60
           periodSeconds: 30
           failureThreshold: 5
@@ -103,39 +87,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gitlab
+  name: gitlab-service
   namespace: gitlab
 spec:
   selector:
     app: gitlab
   ports:
   - name: http
-    port: 8929
-    targetPort: 8929
+    port: 80
+    targetPort: 80
   - name: ssh
     port: 22
     targetPort: 22
-
----
-
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: gitlab-ingress
-  namespace: gitlab
-  labels:
-    app: gitlab
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "false"
-    traefik.ingress.kubernetes.io/router.entrypoints: gitlab
-spec:
-  rules:
-  - http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: gitlab
-            port:
-              number: 8929
