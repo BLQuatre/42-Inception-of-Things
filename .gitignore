@@ -2,3 +2,4 @@
 .DS_STORE
 p1/node-token
 note.md
+*.log
