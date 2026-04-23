@@ -3,3 +3,4 @@
 p1/node-token
 note.md
 *.log
+.tests/
