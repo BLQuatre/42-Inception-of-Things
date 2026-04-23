@@ -48,14 +48,12 @@ spec:
       - name: gitlab
         image: gitlab/gitlab-ce:latest
         ports:
-        - containerPort: 80
-        - containerPort: 443
+        - containerPort: 8929
         - containerPort: 22
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
             external_url 'http://localhost:8929'
-            nginx['listen_port'] = 80
             gitlab_rails['gitlab_shell_ssh_port'] = 22
         volumeMounts:
         - name: gitlab-data
@@ -92,11 +90,8 @@ spec:
     app: gitlab
   ports:
   - name: http
-    port: 80
-    targetPort: 80
-  - name: https
-    port: 443
-    targetPort: 443
+    port: 8929
+    targetPort: 8929
   - name: ssh
     port: 22
     targetPort: 22
@@ -123,4 +118,4 @@ spec:
           service:
             name: gitlab
             port:
-              number: 80
+              number: 8929
