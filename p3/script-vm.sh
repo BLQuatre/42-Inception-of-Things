@@ -32,16 +32,16 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'lomontS'..."
-sudo k3d cluster create lomontS -p "8888:8888@loadbalancer" -p "443:443@loadbalancer" -p "8080:30080@server:0"
+sudo k3d cluster create lomontS -p "8888:8888@loadbalancer" -p "443:443@loadbalancer" -p "80:80@loadbalancer"
 ok "k3d cluster created."
 
 info "Applying namespaces..."
 sudo kubectl apply -f namespaces.yml
 ok "Namespaces applied."
 
-info "Installing ArgoCD manifests..."
+info "Installing ArgoCD..."
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-ok "ArgoCD manifests applied."
+ok "ArgoCD installed."
 
 info "Waiting for all ArgoCD pods to be ready (timeout: 300s)..."
 sudo kubectl wait --for=condition=Ready --timeout=300s pod --all -n argocd
@@ -49,10 +49,13 @@ ok "ArgoCD is fully up and running."
 
 info "Configuring ArgoCD insecure mode and NodePort 30080..."
 sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true"}}'
-sudo kubectl patch svc argocd-server -n argocd --type='json' -p='[{"op":"replace","path":"/spec/type","value":"NodePort"},{"op":"add","path":"/spec/ports/0/nodePort","value":30080}]'
 sudo kubectl rollout restart deployment/argocd-server -n argocd
 sudo kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 ok "ArgoCD configured."
+
+info "Applying Ingress for ArgoCD..."
+sudo kubectl apply -f ingress.yml
+ok "Ingress applied."
 
 info "Creating ArgoCD app 'webapp'..."
 sudo kubectl apply -f app.yaml
