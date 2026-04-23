@@ -10,18 +10,15 @@ curl -sfL https://get.k3s.io | sh -
 cd /mnt
 
 #Applying app one configuration
-sudo kubectl apply -f app-one-deployment.yaml
-sudo kubectl apply -f app-one-service.yaml
+kubectl apply -f app-one-deployment.yaml
+kubectl apply -f app-one-service.yaml
 
 #Applying app two configuration
-sudo kubectl apply -f app-two-deployment.yaml
-sudo kubectl apply -f app-two-service.yaml
+kubectl apply -f app-two-deployment.yaml
+kubectl apply -f app-two-service.yaml
 
 #Applying app three configuration
-sudo kubectl apply -f app-three-deployment.yaml
-sudo kubectl apply -f app-three-service.yaml
+kubectl apply -f app-three-deployment.yaml
+kubectl apply -f app-three-service.yaml
 
-# #running all three applications
-# sudo kubectl run app-one
-# sudo kubectl run app-two
-# sudo kubectl run app-three
+./scripts/change-html.sh
