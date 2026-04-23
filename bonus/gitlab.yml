@@ -1,3 +1,20 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      gitlab:
+        port: 8929
+        expose:
+          default: true
+        exposedPort: 8929
+        protocol: TCP
+
+---
+
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -37,7 +54,7 @@ spec:
         env:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
-            external_url 'http://gitlab.local'
+            external_url 'http://localhost:8929'
             gitlab_rails['gitlab_shell_ssh_port'] = 22
         volumeMounts:
         - name: gitlab-data
@@ -94,10 +111,10 @@ metadata:
     app: gitlab
   annotations:
     ingress.kubernetes.io/ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/router.entrypoints: gitlab
 spec:
   rules:
-  - host: gitlab.local
-    http:
+  - http:
       paths:
       - path: /
         pathType: Prefix

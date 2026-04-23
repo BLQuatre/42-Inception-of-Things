@@ -32,7 +32,7 @@ sudo curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
 ok "k3d installed."
 
 info "Creating k3d cluster 'lomontS'..."
-sudo k3d cluster create lomontS -p "8888:8888@loadbalancer" -p "443:443@loadbalancer" -p "80:80@loadbalancer"
+sudo k3d cluster create lomontS -p "8888:8888@loadbalancer" -p "443:443@loadbalancer" -p "80:80@loadbalancer" -p "8929:8929@loadbalancer"
 ok "k3d cluster created."
 
 info "Applying namespaces..."
@@ -65,9 +65,10 @@ info "Deploying GitLab CE in namespace 'gitlab'..."
 sudo kubectl apply -f gitlab.yml
 ok "GitLab manifests applied."
 
-info "Adding gitlab.local to /etc/hosts..."
-grep -qxF "127.0.0.1 gitlab.local" /etc/hosts || echo "127.0.0.1 gitlab.local" | sudo tee -a /etc/hosts > /dev/null
-ok "gitlab.local mapped to 127.0.0.1."
+info "Waiting for Traefik to restart with GitLab entrypoint (port 8929)..."
+sudo kubectl rollout restart deployment/traefik -n kube-system
+sudo kubectl rollout status deployment/traefik -n kube-system --timeout=120s
+ok "Traefik restarted."
 
 info "Waiting for GitLab pod to be ready (timeout: 600s) — GitLab takes a few minutes to initialize..."
 sudo kubectl wait --for=condition=Ready --timeout=600s pod --all -n gitlab
@@ -79,6 +80,6 @@ echo "ArgoCD UI: http://localhost"
 echo "Username:  admin"
 echo "Password:  ${ARGOCD_PASSWORD}"
 echo ""
-echo "GitLab UI: http://gitlab.local"
+echo "GitLab UI: http://localhost:8929"
 echo "Username:  root"
 echo "Password:  (set on first login via the web UI)"
