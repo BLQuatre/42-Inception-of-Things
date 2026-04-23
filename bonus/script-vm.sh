@@ -145,10 +145,27 @@ info "Cloning GitHub repo '$REPO_NAME'..."
 rm -rf /tmp/"$REPO_NAME"
 git clone "$GITHUB_REPO_URL" /tmp/"$REPO_NAME"
 
-access_token=$(get_gitlab_access_token) || exit 1
+info "Waiting for GitLab API to be ready (timeout: 300s)..."
+elapsed=0
+access_token=""
+while [[ -z "$access_token" && "$elapsed" -lt 300 ]]; do
+	access_token=$(get_gitlab_access_token 2>/dev/null) && break || true
+	sleep 5
+	elapsed=$((elapsed + 5))
+done
+if [[ -z "$access_token" ]]; then
+	err "Timed out waiting for GitLab API to be ready."
+	exit 1
+fi
+ok "GitLab API is ready."
 
 info "Creating GitLab repo '$REPO_NAME'..."
-create_gitlab_repo "$access_token" || exit 1
+elapsed=0
+while [[ "$elapsed" -lt 60 ]]; do
+	create_gitlab_repo "$access_token" && break
+	sleep 5
+	elapsed=$((elapsed + 5))
+done
 
 cd /tmp/"$REPO_NAME"
 git remote add gitlab "http://oauth2:$access_token@localhost/gitlab/root/$REPO_NAME.git"
