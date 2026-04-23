@@ -107,8 +107,8 @@ fi
 echo "$password" > .gitlab_password
 ok "GitLab root password captured."
 
-REPO_NAME="IoT-project-lomont"
-GITHUB_USERNAME="MiniKlar"
+REPO_NAME="red-tetris-kyaubry"
+GITHUB_USERNAME="KylianAUBRY"
 GITLAB_URL="http://localhost/gitlab"
 GITHUB_REPO_URL="https://github.com/$GITHUB_USERNAME/$REPO_NAME"
 
@@ -159,7 +159,7 @@ git push --set-upstream gitlab "$current_branch"
 cd - > /dev/null
 
 info "Creating ArgoCD app 'webapp' (pointing to local GitLab)..."
-sudo kubectl apply -f dev_app.yml
+sudo kubectl apply -f app.yml
 ok "ArgoCD app 'webapp' created."
 
 ARGOCD_PASSWORD=$(sudo kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)

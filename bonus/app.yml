@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: http://gitlab-service.gitlab.svc.cluster.local/gitlab/root/IoT-project-lomont.git
+    repoURL: http://gitlab-service.gitlab.svc.cluster.local/gitlab/root/red-tetris-kyaubry.git
     targetRevision: HEAD
-    path: .
+    path: .github/deployment
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
