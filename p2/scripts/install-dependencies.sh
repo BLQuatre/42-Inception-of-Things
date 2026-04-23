@@ -7,7 +7,7 @@ apk add curl
 curl -sfL https://get.k3s.io | sh -
 
 #sleeping to wait k3s to be operationnal
-sleep 10
+sleep 20
 
 #move to the correct folder
 cd /mnt

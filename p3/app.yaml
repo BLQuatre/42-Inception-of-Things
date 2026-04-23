@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/MiniKlar/IoT-project-lomont.git
+    repoURL: https://github.com/KylianAUBRY/red-tetris-kyaubry.git
     targetRevision: HEAD
     path: .
   destination:
