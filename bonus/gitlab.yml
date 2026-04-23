@@ -55,6 +55,7 @@ spec:
         - name: GITLAB_OMNIBUS_CONFIG
           value: |
             external_url 'http://localhost:8929'
+            nginx['listen_port'] = 80
             gitlab_rails['gitlab_shell_ssh_port'] = 22
         volumeMounts:
         - name: gitlab-data
