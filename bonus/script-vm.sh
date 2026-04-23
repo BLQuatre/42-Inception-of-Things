@@ -62,9 +62,26 @@ sudo kubectl apply -f ingress.yml
 ok "Ingress applied."
 
 response="000"
-while [[ "$response" != "302" ]]; do
+
+info "Waiting for GitLab deployment to be available (timeout: 900s)..."
+sudo kubectl wait --for=condition=available --timeout=900s deployment/gitlab -n gitlab
+ok "GitLab deployment is available."
+
+info "Waiting for initial GitLab root password..."
+password=""
+while [[ -z "$password" ]]; do
+	pod=$(sudo kubectl get pods -n gitlab -l app=gitlab -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+	if [[ -n "$pod" ]]; then
+		password=$(sudo kubectl exec -n gitlab "$pod" -- awk '/Password:/ {print $2}' /etc/gitlab/initial_root_password 2>/dev/null || true)
+	fi
+	[[ -z "$password" ]] && sleep 2
+done
+echo "$password" > .gitlab_password
+ok "GitLab root password captured."
+
+while [[ "$response" != "302" && "$response" != "200" ]]; do
 	response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost/gitlab/ || echo "000")
-	[[ "$response" != "302" ]] && sleep 1
+	[[ "$response" != "302" && "$response" != "200" ]] && sleep 1
 done
 
 REPO_NAME="IoT-project-lomont"
@@ -79,16 +96,28 @@ get_gitlab_access_token() {
 		--form "username=root" \
 		--form "password=$(cat .gitlab_password)" \
 		"$GITLAB_URL/oauth/token")
-	echo "$curl_response" | grep -o '"access_token":"[^"]*' | cut -d':' -f2 | tr -d '"'
+	access_token=$(echo "$curl_response" | grep -o '"access_token":"[^"]*' | cut -d':' -f2 | tr -d '"')
+	if [[ -z "$access_token" ]]; then
+		err "Failed to get GitLab access token. Response: $curl_response"
+		return 1
+	fi
+	echo "$access_token"
 }
 
 create_gitlab_repo() {
 	local access_token="$1"
-	curl --silent --show-error --request POST \
+	http_code=$(curl --silent --show-error --request POST \
 		--header "Authorization: Bearer $access_token" \
 		--form "name=$REPO_NAME" \
 		--form "visibility=public" \
-		"$GITLAB_URL/api/v4/projects" > /dev/null
+		"$GITLAB_URL/api/v4/projects" \
+		-o /dev/null \
+		-w "%{http_code}")
+
+	if [[ "$http_code" != "201" && "$http_code" != "400" && "$http_code" != "409" ]]; then
+		err "Failed to create GitLab repo '$REPO_NAME' (HTTP $http_code)."
+		return 1
+	fi
 }
 
 clone_github_repo() {
@@ -99,25 +128,22 @@ clone_github_repo() {
 printf "${GREEN}[DEV]${NC} - Cloning GitHub repo...\n"
 clone_github_repo
 
-access_token=$(get_gitlab_access_token)
+access_token=$(get_gitlab_access_token) || exit 1
 
 printf "${GREEN}[DEV]${NC} - Creating GitLab repo '$REPO_NAME'...\n"
-create_gitlab_repo "$access_token"
+create_gitlab_repo "$access_token" || exit 1
 
 cd /tmp/"$REPO_NAME"
 git remote add gitlab "http://oauth2:$access_token@localhost/gitlab/root/$REPO_NAME.git"
 
 printf "${GREEN}[DEV]${NC} - Pushing repo to local GitLab...\n"
-git push --set-upstream gitlab master
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+git push --set-upstream gitlab "$current_branch"
 cd "$CURRENT_DIR"
 
 info "Creating ArgoCD app 'webapp'..."
 sudo kubectl apply -f dev_app.yml -n argocd
 ok "ArgoCD app 'webapp' created."
-
-pod=$(sudo kubectl get pods -n gitlab -l app=gitlab -o jsonpath='{.items[0].metadata.name}')
-password=$(sudo kubectl exec -n gitlab "$pod" -- cat /etc/gitlab/initial_root_password | awk '/Password:/ {print $2}')
-echo "$password" > .gitlab_password
 
 ARGOCD_PASSWORD=$(sudo kubectl get secret argocd-initial-admin-secret -n argocd -o jsonpath='{.data.password}' | base64 -d)
 echo ""
