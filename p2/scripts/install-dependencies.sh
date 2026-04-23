@@ -6,6 +6,9 @@ apk add curl
 #install k3s
 curl -sfL https://get.k3s.io | sh -
 
+#sleeping to wait k3s to be operationnal
+sleep 10
+
 #move to the correct folder
 cd /mnt
 
@@ -21,4 +24,7 @@ kubectl apply -f app-two-service.yaml
 kubectl apply -f app-three-deployment.yaml
 kubectl apply -f app-three-service.yaml
 
-./scripts/change-html.sh
+#Applying ingress configuration
+kubectl apply -f ingress-config.yaml
+
+sh /mnt/scripts/change-html.sh
