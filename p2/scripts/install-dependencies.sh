@@ -9,9 +9,6 @@ curl -sfL https://get.k3s.io | sh -
 #sleeping to wait k3s to be operationnal
 #sleep 20
 
-#move to the correct folder
-cd /mnt
-
 #Applying app one configuration
 kubectl apply -f app-one-deployment.yaml
 kubectl apply -f app-one-service.yaml
@@ -27,4 +24,3 @@ kubectl apply -f app-three-service.yaml
 #Applying ingress configuration
 kubectl apply -f ingress-config.yaml
 
-sh /mnt/scripts/change-html.sh
