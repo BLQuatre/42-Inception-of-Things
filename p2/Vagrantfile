@@ -2,6 +2,7 @@ Vagrant.configure("2") do |config|
 	config.vm.box = "takesako/alpine-standard-v3.18"
 	config.vm.box_version = "3.18.5"
 	config.vm.box_architecture = "amd64"
+	config.vm.synced_folder ".", "/vagrant", disabled: true
 	config.vm.synced_folder "./", "/mnt"
 
 	config.vm.provider "virtualbox" do |v|
