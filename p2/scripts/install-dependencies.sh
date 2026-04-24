@@ -27,4 +27,4 @@ kubectl apply -f app-three-service.yaml
 #Applying ingress configuration
 kubectl apply -f ingress-config.yaml
 
-#sh /mnt/scripts/change-html.sh
+sh /mnt/scripts/change-html.sh
