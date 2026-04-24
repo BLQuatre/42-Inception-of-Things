@@ -3,7 +3,7 @@
 sudo kubectl apply -f ./confs/argocd/namespace.yml
 sudo kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true"}}'
+sudo kubectl patch configmap argocd-cmd-params-cm -n argocd --type merge -p '{"data": {"server.insecure": "true", "server.rootpath": "/argocd"}}'
 
 until sudo kubectl get pods -n argocd --field-selector=status.phase=Running 2>/dev/null | grep -q "argocd"; do
 	sleep 3
