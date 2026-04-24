@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: playground-ingress
+  name: webapp-ingress
   labels:
     app: argocd
   annotations:
@@ -14,6 +14,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: playground
+            name: webapp
             port:
               number: 80
