@@ -23,7 +23,7 @@ cd /tmp/"$REPO_NAME"
 gitlab_repo_url_with_token="http://oauth2:$access_token@localhost/gitlab/root/$REPO_NAME.git"
 git remote add gitlab "$gitlab_repo_url_with_token"
 
-git push --set-upstream gitlab master
+git push --set-upstream gitlab main
 cd "$CURRENT_DIR"
 
 sudo kubectl apply -f ./confs/dev/namespace.yml
