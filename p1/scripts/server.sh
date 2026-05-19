@@ -8,12 +8,12 @@ TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
 # Install K3s in server (controller) mode
 wget -qO- https://get.k3s.io | sh -s -
 
-while [ ! -f $TOKEN_FILE ]; do
+while [ ! -f "$TOKEN_FILE" ]; do
 	echo "Waiting for k3s token..."
 	sleep 2
 done
 
-cat $TOKEN_FILE > /vagrant/node-token
+cp "$TOKEN_FILE" /vagrant/node-token
 
 while [ ! -f /etc/rancher/k3s/k3s.yaml ]; do
 	echo "Waiting for k3s kubeconfig..."
