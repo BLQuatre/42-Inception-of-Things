@@ -1,26 +1,21 @@
 #!/bin/sh
 
-#install curl
-apk add curl
+export K3S_KUBECONFIG_MODE="644"
+export INSTALL_K3S_EXEC="server"
+wget -qO- https://get.k3s.io | sh -
 
-#install k3s
-curl -sfL https://get.k3s.io | sh -
+until kubectl get nodes 2>/dev/null | grep -q ' Ready '; do
+	echo "Waiting for k3s node to be Ready..."
+	sleep 5
+done
 
-#sleeping to wait k3s to be operationnal
-#sleep 20
+kubectl apply -f /vagrant/confs/app1-deployment.yml
+kubectl apply -f /vagrant/confs/app1-service.yml
 
-#Applying app one configuration
-kubectl apply -f app-one-deployment.yaml
-kubectl apply -f app-one-service.yaml
+kubectl apply -f /vagrant/confs/app2-deployment.yml
+kubectl apply -f /vagrant/confs/app2-service.yml
 
-#Applying app two configuration
-kubectl apply -f app-two-deployment.yaml
-kubectl apply -f app-two-service.yaml
+kubectl apply -f /vagrant/confs/app3-deployment.yml
+kubectl apply -f /vagrant/confs/app3-service.yml
 
-#Applying app three configuration
-kubectl apply -f app-three-deployment.yaml
-kubectl apply -f app-three-service.yaml
-
-#Applying ingress configuration
-kubectl apply -f ingress-config.yaml
-
+kubectl apply -f /vagrant/confs/ingress-config.yml

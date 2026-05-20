@@ -1,6 +1,3 @@
-# ingress-routing.yaml
-# Route based on request headers
-
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
